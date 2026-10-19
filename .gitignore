@@ -1,0 +1,17 @@
+# rebuilt from art/raw by tools/finish.py
+art/gen/
+# generator scratch
+art/logs/
+art/old/
+art/requests/
+art/providers/
+# renders, builds, critic measurements
+frames/
+dist/
+study/critique/measure/
+study/critique/fidelity_r*/
+# misc
+*.bak
+*.bak2
+.DS_Store
+__pycache__/
