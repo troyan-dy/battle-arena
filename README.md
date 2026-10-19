@@ -4,6 +4,8 @@
 референсу `ref.png` скиллом [ref2game](https://github.com/studioigor/ref2game). Арт сгенерирован (Codex image_gen), всё
 движущееся — код: крошечный движок на WebGL2, cut-out риги, эффекты, свет, звук.
 
+![Референс слева, игра справа](docs/compare.png)
+
 ## Запуск
 
 ```bash
