@@ -1,0 +1,1 @@
+Use your built-in image generation tool. Image 1 is a style reference. Generate one pixel-art game UI icon in the style of Image 1: a blue-grey armoured boot with a small wing, centred, on a plain magenta background. Save it as icon_boot.png in the current directory. Do nothing else.

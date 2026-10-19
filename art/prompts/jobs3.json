@@ -1,0 +1,54 @@
+[
+ {
+  "name": "icon_ice",
+  "prompt": "art/prompts/icon_ice.txt",
+  "size": "1024x1024",
+  "alpha": "none"
+ },
+ {
+  "name": "icon_bolt",
+  "prompt": "art/prompts/icon_bolt.txt",
+  "size": "1024x1024",
+  "alpha": "none"
+ },
+ {
+  "name": "icon_hole",
+  "prompt": "art/prompts/icon_hole.txt",
+  "size": "1024x1024",
+  "alpha": "none"
+ },
+ {
+  "name": "icon_fire",
+  "prompt": "art/prompts/icon_fire.txt",
+  "size": "1024x1024",
+  "alpha": "none"
+ },
+ {
+  "name": "icon_heart",
+  "prompt": "art/prompts/icon_heart.txt",
+  "size": "1024x1024",
+  "key": "ff00ff"
+ },
+ {
+  "name": "icon_boot",
+  "prompt": "art/prompts/icon_boot.txt",
+  "size": "1024x1024",
+  "key": "ff00ff"
+ },
+ {
+  "name": "icon_gold",
+  "prompt": "art/prompts/icon_gold.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "ui_skull",
+  "prompt": "art/prompts/ui_skull.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "fx_firesword",
+  "prompt": "art/prompts/fx_firesword.txt",
+  "size": "1024x1024",
+  "key": "00ffff"
+ }
+]

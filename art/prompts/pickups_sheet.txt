@@ -1,0 +1,4 @@
+Use case: pickup icon sheet for a top-down horde-survival game (Image 1: the gold coins and blue experience crystals scattered on the ground).
+Subject: 4 separate pickups, same scale, high 3/4 view: 1) a thick gold coin seen at a slight angle, bright gold #f9c32d with orange-brown shading; 2) a small blue faceted experience crystal, cyan-blue #73c2e7 to deep blue; 3) a larger violet faceted crystal; 4) a small red heart-shaped healing gem.
+Composition: a single horizontal row of 4, each centred in its quarter, with wide empty gaps between items, each item about 60% of the canvas height.
+Constraints: no ground, no shadow, no glow, no sparkles, no text.

@@ -1,0 +1,107 @@
+{
+ "crops": {
+  "hero_area.png": {
+   "file": "ref.png",
+   "box": [
+    380,
+    250,
+    620,
+    420
+   ],
+   "zoom": 3.0,
+   "grid": 10,
+   "clean": false,
+   "t": null,
+   "size": [
+    763,
+    564
+   ]
+  },
+  "enemies_a.png": {
+   "file": "ref.png",
+   "box": [
+    560,
+    60,
+    800,
+    230
+   ],
+   "zoom": 3.0,
+   "grid": 10,
+   "clean": false,
+   "t": null,
+   "size": [
+    763,
+    564
+   ]
+  },
+  "ruins_left.png": {
+   "file": "ref.png",
+   "box": [
+    0,
+    120,
+    250,
+    330
+   ],
+   "zoom": 3.0,
+   "grid": 10,
+   "clean": false,
+   "t": null,
+   "size": [
+    793,
+    684
+   ]
+  },
+  "arena.png": {
+   "file": "ref.png",
+   "box": [
+    8,
+    8,
+    955,
+    595
+   ],
+   "zoom": 1,
+   "grid": null,
+   "clean": true,
+   "t": null,
+   "size": [
+    947,
+    587
+   ]
+  },
+  "se_area.png": {
+   "file": "ref.png",
+   "box": [
+    700,
+    380,
+    960,
+    600
+   ],
+   "zoom": 3.0,
+   "grid": 10,
+   "clean": false,
+   "t": null,
+   "size": [
+    823,
+    714
+   ]
+  },
+  "ice_fx.png": {
+   "file": "ref.png",
+   "box": [
+    330,
+    170,
+    760,
+    480
+   ],
+   "zoom": 2.0,
+   "grid": 10,
+   "clean": false,
+   "t": null,
+   "size": [
+    903,
+    674
+   ]
+  }
+ },
+ "updated": "2026-10-18 23:46:49"
+}

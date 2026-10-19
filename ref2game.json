@@ -1,0 +1,41 @@
+{
+  "generator": {
+    "provider": "codex",
+    "model": null,
+    "size": "1536x1024",
+    "quality": "high",
+    "opaque": [
+      "bg_sky*",
+      "*_tex"
+    ],
+    "jobs": 3,
+    "alpha": "key",
+    "key": "ff00ff"
+  },
+  "style_bible": "art/style_bible.txt",
+  "style_ref": [
+    "study/crops/arena.png"
+  ],
+  "view": [
+    1920,
+    1080
+  ],
+  "prep": {
+    "src": "art/gen",
+    "dst": "live/assets",
+    "manifest": "live/assets.js",
+    "notrim": [
+      "bg_*",
+      "*_tex"
+    ],
+    "skip": [
+      "*_sheet",
+      "*_raw"
+    ],
+    "max": 2048,
+    "walk": {
+      "ground": 0.6,
+      "ledge*": 0.45
+    }
+  }
+}

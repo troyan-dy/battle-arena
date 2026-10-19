@@ -1,0 +1,5 @@
+Use case: enemy anchor sprite for a top-down horde-survival game; it will be cut into parts for a cut-out rig.
+Subject: a small hunched undead ghoul like the many dark crawling fiends in Image 1: dark desaturated blue-grey skin #2a3036-#4d5a5c, bald head, two glowing red eyes, long thin arms with claws, ragged dark-red loincloth, bony back. High 3/4 top-down view, facing the camera, hunched forward. About as tall as the hero's shoulder.
+Pose (rig pose): legs apart with a clear gap, both long arms held out and down away from the body with a clear gap.
+Composition: one character centred, full body, about 70% of canvas height, wide empty margin.
+Constraints: exactly one character; no ground, no shadow, no text.

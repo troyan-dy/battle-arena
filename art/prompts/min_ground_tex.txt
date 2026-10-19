@@ -1,0 +1,1 @@
+Use your built-in image generation tool. Image 1 is a style reference. Generate one seamless tileable pixel-art ground texture in the style of Image 1, seen straight from above: dark slate flagstones with mossy cracks and small grass tufts, flat even light, filling the whole square image edge to edge. Save it as ground_tex.png in the current directory. Do nothing else.

@@ -1,0 +1,5 @@
+Use case: enemy anchor sprite for a top-down horde-survival game; it will be cut into parts for a cut-out rig.
+Subject: a shambling undead skeleton warrior like the bony white-grey skeletons in Image 1: off-white bone #d4e3e7 with grey-blue shading, dark eye sockets with small glowing red eye dots, a few ragged dark cloth scraps at the waist, slightly hunched. High 3/4 top-down view, facing the camera. As tall as the hero.
+Pose (rig pose): standing, legs apart with a clear gap between them, both arms held out from the body with a clear gap (clawed bony hands open), no weapon.
+Composition: one character centred, full body, about 70% of the canvas height, wide empty margin.
+Constraints: exactly one character; no ground, no shadow, no glow halo, no text.

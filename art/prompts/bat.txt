@@ -1,0 +1,4 @@
+Use case: enemy anchor sprite for a top-down horde-survival game; the wings will be animated separately.
+Subject: a demonic bat like the purple bats with red eyes in Image 1: small dark furry body, big pointed ears, two glowing red eyes, small fangs, wide membrane wings dark violet #3a2a55-#6a4a8a with bony fingers. High 3/4 top-down view, facing the camera, wings spread wide and flat to both sides.
+Composition: one creature centred, wings fully visible, filling about 80% of the canvas width, wide empty margin. About half the hero's height for the body.
+Constraints: exactly one creature; no ground, no shadow, no text.

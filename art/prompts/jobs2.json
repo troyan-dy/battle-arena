@@ -1,0 +1,64 @@
+[
+ {
+  "name": "prop_pillar",
+  "prompt": "art/prompts/prop_pillar.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "prop_grave",
+  "prompt": "art/prompts/prop_grave.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "prop_torch",
+  "prompt": "art/prompts/prop_torch.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "prop_wall",
+  "prompt": "art/prompts/prop_wall.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "prop_rocks",
+  "prompt": "art/prompts/prop_rocks.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "prop_bush",
+  "prompt": "art/prompts/prop_bush.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "pick_xp",
+  "prompt": "art/prompts/pick_xp.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "pick_xp5",
+  "prompt": "art/prompts/pick_xp5.txt",
+  "size": "1024x1024",
+  "key": "00ff00"
+ },
+ {
+  "name": "pick_heart",
+  "prompt": "art/prompts/pick_heart.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "ground_tex",
+  "prompt": "art/prompts/ground_tex.txt",
+  "size": "1024x1024",
+  "alpha": "none"
+ },
+ {
+  "name": "skeleton",
+  "prompt": "art/prompts/skeleton_short.txt",
+  "size": "1024x1024"
+ },
+ {
+  "name": "brute",
+  "prompt": "art/prompts/brute_short.txt",
+  "size": "1024x1024"
+ }
+]
