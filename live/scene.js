@@ -310,7 +310,7 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
 
   // ================================================================ render ================================================================
   S.render = (t) => {
-    const ST = S.state || SIM.at(t), GT = ST.t, rnd = L.rnd;
+    const ST = S.state || SIM.at(t), GT = ST.t, rnd = L.rnd; S.lastST = ST;   // audio.js reads the frame's state (the demo too)
     // shake: trauma from hurts and lightning, decays fast
     let tr = 0; for (const e of ST.ev) { const a = GT - e.t; if (a < 0) continue;
       if (e.k === 'hurt' && a < 0.25) tr = Math.max(tr, 0.6 * (1 - a / 0.25)); if (e.k === 'bolt' && a < 0.15) tr = Math.max(tr, 0.25 * (1 - a / 0.15)); if (e.k === 'death' && a < 0.5) tr = Math.max(tr, 1 - a / 0.5); }
