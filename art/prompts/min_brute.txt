@@ -1,0 +1,1 @@
+Use your built-in image generation tool. Image 1 is a style reference. Generate one small pixel-art monster sprite in the style of Image 1: a fat grey ogre, front view, legs apart, on a plain magenta background. Save it as brute.png in the current directory. Do nothing else.

@@ -1,0 +1,5 @@
+Use case: enemy anchor sprite for a top-down horde-survival game; it will be cut into parts for a cut-out rig.
+Subject: a big hulking undead brute like the large dark hunched ogres with orange eyes in Image 1: massive rounded shoulders, small head sunk forward, glowing orange eyes, dark slate-blue-grey skin #2a3036-#5a6470 with lighter grey highlights, ragged dark wrappings, holding a crude rusty short blade in the right hand. High 3/4 top-down view, facing the camera. About 1.5 times the hero's height and twice as wide.
+Pose (rig pose): standing, short thick legs apart with a clear gap, both heavy arms hanging away from the torso with a clear gap; the blade pointing down beside the body, not across it.
+Composition: one character centred, full body, about 70% of canvas height, wide empty margin.
+Constraints: exactly one character; no ground, no shadow, no text.

@@ -1,0 +1,39 @@
+[
+ {
+  "name": "ground_tex",
+  "prompt": "art/prompts/ground_tex.txt",
+  "size": "1024x1024",
+  "alpha": "none"
+ },
+ {
+  "name": "skeleton",
+  "prompt": "art/prompts/skeleton.txt",
+  "size": "1024x1536"
+ },
+ {
+  "name": "ghoul",
+  "prompt": "art/prompts/ghoul.txt",
+  "size": "1024x1536"
+ },
+ {
+  "name": "brute",
+  "prompt": "art/prompts/brute.txt",
+  "size": "1024x1536"
+ },
+ {
+  "name": "bat",
+  "prompt": "art/prompts/bat.txt",
+  "size": "1536x1024",
+  "key": "00ff00"
+ },
+ {
+  "name": "props_sheet",
+  "prompt": "art/prompts/props_sheet.txt",
+  "size": "1536x1024"
+ },
+ {
+  "name": "pickups_sheet",
+  "prompt": "art/prompts/pickups_sheet.txt",
+  "size": "1536x1024"
+ }
+]

@@ -1,0 +1,1 @@
+Use your built-in image generation tool. Image 1 is a style reference. Generate one pixel-art sprite in the style of Image 1: a flaming sword pointing straight up, dark steel blade wreathed in orange and yellow flames, golden hilt at the bottom, centred, on a plain cyan background. Save it as fx_firesword.png in the current directory. Do nothing else.

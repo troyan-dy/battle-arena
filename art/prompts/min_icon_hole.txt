@@ -1,0 +1,1 @@
+Use your built-in image generation tool. Image 1 is a style reference. Generate one pixel-art game UI icon in the style of Image 1: a swirling purple black hole vortex with a dark core on a dark background filling the whole square image. Save it as icon_hole.png in the current directory. Do nothing else.

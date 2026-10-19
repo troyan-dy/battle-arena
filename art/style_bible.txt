@@ -1,0 +1,2 @@
+STYLE: HD pixel-art sprite for a dark-fantasy horde-survival game, matching Image 1: hard square pixels on a regular grid, 3-4 flat tones per material with a hard terminator, cool blue-violet shadows, 1-pixel near-black #030911 outline, low-key palette (mossy greens, slate greys, bone, ember orange, gold).
+Light: soft moonlight from the upper left, no cast shadow. High 3/4 top-down game view. No text, no glow, no shadow under the subject.

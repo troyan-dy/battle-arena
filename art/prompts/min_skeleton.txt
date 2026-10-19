@@ -1,0 +1,1 @@
+Use your built-in image generation tool. Image 1 is a style reference. Generate one pixel-art sprite in the style of Image 1: an undead skeleton warrior with red glowing eyes and a ragged loincloth, front view, standing with legs apart and arms held out from the body, on a plain magenta background. Save it as skeleton.png in the current directory. Do nothing else.

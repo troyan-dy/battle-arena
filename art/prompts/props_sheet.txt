@@ -1,0 +1,5 @@
+Use case: prop kit sheet for a top-down horde-survival arena set in overgrown forest ruins (Image 1: the crumbling stone pillars, gravestones, broken walls and iron torch stands around the arena edges).
+Subject: 6 separate props, all in the same high 3/4 top-down view, same scale and same light:
+1) a tall broken square stone pillar with moss on top; 2) a weathered rounded gravestone with moss, no engraving; 3) a black iron standing torch brazier on a pole, with an empty unlit bowl (no flame); 4) a crumbling low section of stone wall with moss; 5) a cluster of mossy boulders; 6) a dead dark thorny bush.
+Composition: arranged in a 3x2 grid, each prop centred in its cell with wide empty gaps (at least 15% of the canvas) between props; every prop fully inside its cell, nothing touching another prop or the edge.
+Constraints: no ground, no floor tiles, no shadows, no flames, no glow, no text or runes.

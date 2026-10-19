@@ -1,0 +1,1 @@
+Use your built-in image generation tool. Image 1 is a style reference. Generate one pixel-art game icon in the style of Image 1: an orange flaming sword on a dark red square background. Save it as icon_fire.png in the current directory. Do nothing else.

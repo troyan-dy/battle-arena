@@ -1,0 +1,1 @@
+A game UI icon: a green pixel heart, bold and simple. One item centred, about 70% of the canvas.

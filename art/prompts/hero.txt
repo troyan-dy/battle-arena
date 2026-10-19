@@ -1,0 +1,5 @@
+Use case: character anchor sprite for a top-down horde-survival game; it will be cut into parts for a cut-out rig.
+Subject: the player hero from Image 1 (the small adventurer in the centre of the glowing ring): a young adventurer with a sandy-blonde hooded cap, brown leather armour with a dark belt and straps, dark trousers, brown boots, holding a short golden-bronze magic staff in the right hand. High 3/4 top-down view, facing the camera (towards the viewer, slightly down).
+Pose (rig pose): standing upright, feet apart directly under the hips with a clear gap between the legs, both arms held slightly away from the torso with a clear gap between each arm and the body, the staff held vertically beside the body, not crossing the torso or legs. Neutral face.
+Composition: one character, centred, full body visible, filling about 70% of the canvas height, wide empty margin on all sides.
+Constraints: exactly one character; no ground, no floor, no shadow under the feet, no glow, no magic effects, no text.
