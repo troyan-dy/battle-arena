@@ -239,7 +239,7 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
 
   // one enemy (or a placeholder sprite before its rig exists)
   function drawEnemy(e, ST, GT, sx, sy, t) {
-    const T = SIM.ET[e.type], hgt = SZ(e.type) * (e.elite ? 1.3 : 1), x = sx(e.x), y = sy(e.y);
+    const T = SIM.ET[e.type], hgt = SZ(e.type) * (e.sz || (e.elite ? 1.3 : 1)), x = sx(e.x), y = sy(e.y);
     const tdx0 = ST.x - e.x, tdy0 = ST.y - e.y, tdl = Math.hypot(tdx0, tdy0) || 1, fadeIn = e.born !== undefined ? L.SS(0, 0.25, GT - e.born) : 1;
     const o = { id: 'e' + e.id, type: e.type, face: e.face, gph: e.gph, gait: e.gait, gdx: e.gdx, gdy: e.gdy, t, seed: e.ph, neutral: ST.neutral, tgx: tdx0 / tdl, tgy: tdy0 / tdl, alpha: fadeIn,
       atk: GT - e.atkT < 0 ? 0 : GT - e.atkT < 0.06 ? -0.3 * L.SS(0, 0.06, GT - e.atkT) : GT - e.atkT < 0.14 ? -0.3 + 1.3 * L.SS(0.06, 0.12, GT - e.atkT) : 1 - L.SS(0.2, 0.4, GT - e.atkT), hit: GT - e.hitT, die: e.dieT >= 0 ? GT - e.dieT : -1, dieDir: (e.id % 2) * 2 - 1,
@@ -247,14 +247,15 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
     if (e.type === 'bat') { L.shadow(x, y + 2, 20, 6, 0.32 * fadeIn * (o.die >= 0 ? 1 - Math.min(1, o.die / 0.6) : 1)); drawBat(x, y, hgt, o); }
     else { const shA = (o.die >= 0 ? 1 - L.SS(1.0, 1.35, o.die) : 1) * fadeIn; L.shadow(x + 4, y + 2, hgt * 0.32, hgt * 0.1, 0.5 * shA);
       let ok = false; const body = () => { ok = drawRig(e.type, x, y, hgt, o) || !!(RIGS()[STANDIN[e.type]] && drawRig(STANDIN[e.type], x, y, hgt, Object.assign(o, { type: STANDIN[e.type] }))); };
-      if (e.elite) L.inked(body, { r: 2.6, n: 4, col: [1, 0.75, 0.2], dy: 0 }); else if (e.ink && fadeIn > 0.99) L.inked(body, INKE); else body();
+      if (e.boss) L.inked(body, { r: 3.2, n: 6, col: [1, 0.22, 0.12], dy: 0 }); else if (e.elite) L.inked(body, { r: 2.6, n: 4, col: [1, 0.75, 0.2], dy: 0 });
+      else if (e.champ) L.inked(body, { r: 2.2, n: 4, col: [0.95, 0.18, 0.22], dy: 0 }); else if (e.ink && fadeIn > 0.99) L.inked(body, INKE); else body();
       if (!ok) { const n = e.type, w = L.hsz(n, hgt), q = 1 + 0.06 * Math.sin(e.dist * 0.15);
         L.sprite(n, 0, 0, { m: M.of(M.t(x, y), M.s(e.face / Math.sqrt(q), q)), w, h: hgt, pivot: [w / 2, hgt], u: { alpha: o.die >= 0 ? 1 - Math.min(1, o.die / 0.7) : 1, grade: [1, 1, o.hit >= 0 && o.hit < 0.1 ? 0.75 : 0, 1], haze: [1, 1, 1] } });
         o.headXY = [x, y - hgt * 0.8]; } }
     // glowing eyes (the art has the eyes; this is their light)
     if (o.eyeXY && o.die < 0 && fadeIn > 0.5) L.glow(o.eyeXY[0], o.eyeXY[1], hgt * 0.12, e.type === 'brute' ? [1, 0.25, 0.08] : [1, 0.12, 0.08], 0.3, 5);
     // health bar over damaged big enemies
-    if (e.hp < e.hpMax && o.die < 0) { const bw = T.bar ? 80 : 46, bh = T.bar ? 8 : 6, bx = x - bw / 2, by = y - hgt - (e.type === 'bat' ? 64 : 16);
+    if (e.hp < e.hpMax && o.die < 0) { const bw = e.boss ? 170 : T.bar || e.champ ? 80 : 46, bh = e.boss ? 12 : T.bar || e.champ ? 8 : 6, bx = x - bw / 2, by = y - hgt - (e.type === 'bat' ? 64 : 16);
       L.rrect(bx - 2, by - 2, bw + 4, bh + 4, 3, [0.02, 0.03, 0.05], [0.02, 0.03, 0.05], 0.85); L.rrect(bx, by, bw * Math.max(0, e.hp / e.hpMax), bh, 2, [0.98, 0.25, 0.27], [0.75, 0.1, 0.14]); }
   }
 
@@ -302,9 +303,31 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
     if (cur) out.push(cur); return out; };
   const mmss = (s) => { s = Math.max(0, Math.floor(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
   const panel = (x, y, w, h, r = 10, a = 0.92, border = [0.30, 0.42, 0.58]) => { L.rrect(x - 2, y - 2, w + 4, h + 4, r + 2, border, border.map((v) => v * 0.6), a); L.rrect(x, y, w, h, r, [0.05, 0.08, 0.14], [0.03, 0.05, 0.09], a); };
-  const ICON = { ice: 'icon_ice', bolt: 'icon_bolt', hole: 'icon_hole', fire: 'icon_fire', hp: 'icon_heart', spd: 'icon_boot', gold: 'icon_gold', heal: 'pick_heart', magnet: 'pick_xp5' };
-  const ICOL = { ice: [0.45, 0.8, 1], bolt: [0.5, 0.75, 1], hole: [0.7, 0.4, 1], fire: [1, 0.5, 0.15], hp: [0.3, 0.9, 0.4], spd: [0.5, 0.75, 1], gold: [1, 0.8, 0.25], heal: [1, 0.3, 0.35], magnet: [0.7, 0.4, 1] };
+  const ICON = { ice: 'icon_ice', bolt: 'icon_bolt', hole: 'icon_hole', fire: 'icon_fire', hp: 'icon_heart', spd: 'icon_boot', gold: 'icon_gold', heal: 'pick_heart', xp: 'pick_xp', bag: 'icon_gold' };
+  const ICOL = { ice: [0.45, 0.8, 1], bolt: [0.5, 0.75, 1], hole: [0.7, 0.4, 1], fire: [1, 0.5, 0.15], hp: [0.3, 0.9, 0.4], spd: [0.5, 0.75, 1], gold: [1, 0.8, 0.25], heal: [1, 0.3, 0.35], magnet: [0.7, 0.4, 1],
+    might: [1, 0.45, 0.2], haste: [0.45, 0.9, 1], crit: [1, 0.82, 0.3], knock: [0.95, 0.72, 0.5], area: [0.55, 0.85, 1], regen: [0.4, 1, 0.5], armor: [0.72, 0.78, 0.9],
+    vamp: [1, 0.22, 0.28], dur: [0.98, 0.8, 0.5], luck: [0.45, 0.95, 0.4], amount: [0.55, 0.75, 1], gift: [1, 0.55, 0.85], xp: [0.4, 0.7, 1], bag: [1, 0.8, 0.25] };
+  const GLYPH = {
+    might: ['.....#.....', '....###....', '...#####...', '..#######..', '.#########.', '###########', '....###....', '....###....', '....###....', '....###....', '....###....'],
+    haste: ['#....#.....', '##...##....', '.##...##...', '..##...##..', '...##...##.', '..##...##..', '.##...##...', '##...##....', '#....#.....'],
+    crit: ['#....#....#', '.#...#...#.', '..#.###.#..', '...#####...', '..#######..', '###########', '..#######..', '...#####...', '..#.###.#..', '.#...#...#.', '#....#....#'],
+    knock: ['.....#.....', '.....##....', '.....###...', '##.#######.', '##.########', '##.#######.', '.....###...', '.....##....', '.....#.....'],
+    area: ['...#####...', '..#.....#..', '.#..###..#.', '#..#...#..#', '#.#..#..#.#', '#.#.###.#.#', '#.#..#..#.#', '#..#...#..#', '.#..###..#.', '..#.....#..', '...#####...'],
+    regen: ['....###....', '....###....', '....###....', '###########', '###########', '###########', '....###....', '....###....', '....###....'],
+    armor: ['.#########.', '###########', '###########', '###########', '###########', '.#########.', '.#########.', '..#######..', '...#####...', '....###....', '.....#.....'],
+    vamp: ['.....#.....', '....###....', '....###....', '...#####...', '..#######..', '.#########.', '.#########.', '.#########.', '..#######..', '...#####...'],
+    dur: ['###########', '.#########.', '..#######..', '...#####...', '....###....', '.....#.....', '....###....', '...#####...', '..#######..', '.#########.', '###########'],
+    luck: ['.###...###.', '#####.#####', '#####.#####', '.###...###.', '.....#.....', '.###...###.', '#####.#####', '#####.#####', '.###...###.', '......#....', '.......#...'],
+    amount: ['.#...#...#.', '###.###.###', '###.###.###', '###.###.###', '.#...#...#.', '.#...#...#.', '.#...#...#.'],
+    gift: ['..##...##..', '...#.#.#...', '....###....', '###########', '###########', '.####.####.', '.####.####.', '.####.####.', '.####.####.', '.#########.'],
+  };
+  const glyph = (id, x, y, s, a) => { const g = GLYPH[id], c = ICOL[id], n = g[0].length, px = s / (n + 2), ox = x + (s - px * n) / 2, oy = y + (s - px * g.length) / 2;
+    L.glow(x + s / 2, y + s / 2, s * 0.55, c, 0.5 * a, 3);
+    for (const pass of [0, 1]) g.forEach((row, j) => { for (let i = 0; i < n; i++) if (row[i] === '#') {
+      if (!pass) L.solid(ox + i * px - px * 0.35, oy + j * px - px * 0.35, px * 1.7, px * 1.7, [0.03, 0.04, 0.07], 0, 0, 0, a);
+      else { const lit = 1.15 - 0.45 * j / g.length; L.solid(ox + i * px, oy + j * px, px + 0.5, px + 0.5, c.map((v) => Math.min(1, v * lit)), 0, 0, 0, a); } } }); };
   const icon = (id, x, y, s, a = 1) => { const n = ICON[id];
+    if (GLYPH[id]) { glyph(id, x, y, s, a); return; }
     if (has(n)) { const w = L.hsz(n, s); L.sprite(n, x + (s - w) / 2, y, { w, h: s, u: { alpha: a } }); return; }
     const c = ICOL[id] || [1, 1, 1]; L.glow(x + s / 2, y + s / 2, s * 0.55, c, 0.9 * a, 3); L.star(x + s / 2, y + s / 2, s * 0.45, c, a); };
 
@@ -335,8 +358,12 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
       const fy0 = sy(y) - SZ('torch') * s * 0.92; G.draw(L.P.glow, { u_col: [1.0, 0.55, 0.18], u_k: 2.4, u_amt: 0.22 * f }, G.xf(sx(x) - 120 * s, fy0 + 40 - 80 * s, 240 * s, 160 * s)); }
     G.draw(L.P.glow, { u_col: [0.25, 0.75, 0.75], u_k: 2.6, u_amt: 0.16 }, G.xf(sx(ST.x) - 300, sy(ST.y) - 210, 600, 400));
     if (!off('rune')) G.draw(L.P.rune, { u_col: [0.25, 0.95, 0.9], u_amt: 0.8, u_t: t }, G.xf(sx(ST.x) - 96, sy(ST.y) - 40 - 72, 192, 144));
+    const rich = SIM.BUFFS.some((id) => SIM.canBuy(ST, id));
+    for (const [ax, ay] of SIM.ALTARS) { if (!vis(ax, ay, 300)) continue; const X = sx(ax), Y = sy(ay), f = (rich ? 1 : 0.55) * (0.9 + 0.1 * Math.sin(t * 3 + ax));
+      G.draw(L.P.glow, { u_col: [1, 0.72, 0.25], u_k: 2.4, u_amt: 0.22 * f }, G.xf(X - 230, Y - 150, 460, 300));
+      G.draw(L.P.rune, { u_col: [1, 0.75, 0.3], u_amt: 0.95 * f, u_t: t * 0.7 + ax }, G.xf(X - 150, Y - 112, 300, 224)); }
     G.blend();
-    for (const h of off('hole') ? [] : ST.holes) { const a = GT - h.t0, grow = L.SS(0, 0.25, a) * (1 - L.SS(SIM.WP.hole.dur - 0.3, SIM.WP.hole.dur, a)), r = h.r * 1.25 * grow;
+    for (const h of off('hole') ? [] : ST.holes) { const a = GT - h.t0, hd = h.dur || SIM.WP.hole.dur, grow = L.SS(0, 0.25, a) * (1 - L.SS(hd - 0.3, hd, a)), r = h.r * 1.25 * grow;
       L.glow(sx(h.x), sy(h.y), r * 2.2, [0.55, 0.2, 1.0], 0.5 * grow, 2.5);
       G.draw(L.P.vortex, { u_amt: 0.95 * grow, u_seed: h.t0, u_t: t }, G.xf(sx(h.x) - r, sy(h.y) - r * 0.62, 2 * r, 2 * r * 0.62)); }
 
@@ -369,24 +396,27 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
       if (occ && heroDraw && ST.dead < 0) { L.sp = { dx: 0, dy: 0, a: 0.85, lod: 0, ink: [0.5, 0.9, 1.0], grow: 2.5 }; heroDraw(); L.sp = { dx: 0, dy: 0, a: 0.55, lod: 0, ink: [0.06, 0.16, 0.24] }; heroDraw(); L.sp = null; } }
 
     // ===== FX =====
+    for (const [ax, ay] of SIM.ALTARS) { if (!vis(ax, ay, 300)) continue; const X = sx(ax), Y = sy(ay) - 110 + 8 * Math.sin(t * 2.2 + ax);
+      L.glow(X, Y, 70, [1, 0.75, 0.3], 0.45, 3); L.sprite('icon_gold', X - 28, Y - 28, { w: L.hsz('icon_gold', 56), h: 56 });
+      G.blend('add'); beam(X, sy(ay) - 10, X, Y + 20, 26, [1, 0.7, 0.25], 0.25); G.blend(); }
     // fire blades orbiting the hero
-    if (ST.wp.fire && !off('fire')) { const l = ST.wp.fire, n = SIM.WP.fire.n[l - 1], spd = SIM.WP.fire.spd[l - 1] * Math.PI * 2 * 0.55;
-      for (let i = 0; i < n; i++) { const a = ST.clock * spd + i * Math.PI * 2 / n, fx = sx(ST.x + Math.cos(a) * SIM.WP.fire.rad), fy = sy(ST.y - 30 + Math.sin(a) * SIM.WP.fire.rad * 0.62);
-        for (let j = 1; j <= 5; j++) { const b = a - j * 0.09, bx = sx(ST.x + Math.cos(b) * SIM.WP.fire.rad), by = sy(ST.y - 30 + Math.sin(b) * SIM.WP.fire.rad * 0.62);
+    if (ST.wp.fire && !off('fire')) { const n = SIM.fireN(ST), spd = SIM.fireSpd(ST), fr = SIM.fireRad(ST), ak = SIM.area(ST);
+      for (let i = 0; i < n; i++) { const a = ST.clock * spd + i * Math.PI * 2 / n, fx = sx(ST.x + Math.cos(a) * fr), fy = sy(ST.y - 30 + Math.sin(a) * fr * 0.62);
+        for (let j = 1; j <= 5; j++) { const b = a - j * 0.09, bx = sx(ST.x + Math.cos(b) * fr), by = sy(ST.y - 30 + Math.sin(b) * fr * 0.62);
           L.puff(bx, by, 16 - j * 2, [1, 0.45, 0.1], 0.35 * (1 - j / 6), i * 10 + j); }
         L.glow(fx, fy, 70, [1, 0.5, 0.12], 0.6, 3);
-        if (has('fx_firesword')) { const h = 104, w = L.hsz('fx_firesword', h), ra = Math.atan2(Math.sin(a) * 0.62, Math.cos(a)) + Math.PI / 2;   // tip pointing away from the hero
+        if (has('fx_firesword')) { const h = 104 * ak, w = L.hsz('fx_firesword', h), ra = Math.atan2(Math.sin(a) * 0.62, Math.cos(a)) + Math.PI / 2;   // tip pointing away from the hero
           L.inked(() => L.sprite('fx_firesword', 0, 0, { m: M.of(M.t(fx, fy), M.r(ra)), w, h, pivot: [w / 2, h * 0.62] }), INKS); }
         else { G.blend('add'); G.draw(L.P.flame, { u_amt: 1, u_seed: i * 3.1, u_t: t, u_col: [1, 0.35, 0.05] }, G.xf(fx - 26, fy - 62, 52, 80, 0, 26, 62)); G.blend(); } } }
     // ice storm: each claw drags a fading ribbon along its spiral; the cast flourish is a wide arc sweeping round the hero
     G.blend('add');
-    for (const p of ST.pr) { const age = GT - p.t0, fade = Math.min(1, p.life / 0.2) * Math.min(1, age / 0.05), spin = SIM.WP.ice.spin;
-      const at = (a) => { const r = 110 + 260 * a, th = p.th + spin * a; return [sx(p.ox + Math.cos(th) * r), sy(p.oy + Math.sin(th) * r * 0.72)]; };
+    for (const p of ST.pr) { const age = GT - p.t0, fade = Math.min(1, p.life / 0.2) * Math.min(1, age / 0.05), spin = SIM.WP.ice.spin, k = p.sz || 1;   // k: Радиус
+      const at = (a) => { const r = (110 + 260 * a) * k, th = p.th + spin * a; return [sx(p.ox + Math.cos(th) * r), sy(p.oy + Math.sin(th) * r * 0.72)]; };
       const nb = Math.min(9, Math.floor(age / 0.03)); let prev = at(age);
-      for (let j = 1; j <= nb; j++) { const pt = at(age - j * 0.03), q = j / 10; beam(pt[0], pt[1], prev[0], prev[1], 34 * (1 - q) + 4, [0.18, 0.4, 0.95], 0.8 * fade * (1 - q) * (1 - q)); prev = pt; }
+      for (let j = 1; j <= nb; j++) { const pt = at(age - j * 0.03), q = j / 10; beam(pt[0], pt[1], prev[0], prev[1], (34 * (1 - q) + 4) * k, [0.18, 0.4, 0.95], 0.8 * fade * (1 - q) * (1 - q)); prev = pt; }
       const hx = sx(p.x), hy = sy(p.y);
-      G.draw(L.P.glow, { u_col: [0.25, 0.55, 1.0], u_k: 3, u_amt: 0.25 * fade }, G.xf(hx - 55, hy - 55, 110, 110));
-      G.draw(L.P.crescent, { u_col: [0.3, 0.6, 1.0], u_amt: 1.6 * fade, u_n: 38 }, G.xf(hx - 76, hy - 76, 152, 152, p.a, 76, 76)); }
+      G.draw(L.P.glow, { u_col: [0.25, 0.55, 1.0], u_k: 3, u_amt: 0.25 * fade }, G.xf(hx - 55 * k, hy - 55 * k, 110 * k, 110 * k));
+      G.draw(L.P.crescent, { u_col: [0.3, 0.6, 1.0], u_amt: 1.6 * fade, u_n: 38 }, G.xf(hx - 76 * k, hy - 76 * k, 152 * k, 152 * k, p.a, 76 * k, 76 * k)); }
     for (const e of ST.ev) { if (e.k !== 'cast') continue; const a0 = GT - e.t; if (a0 < 0 || a0 > 0.9) continue;
       const q = a0 / 0.9, head = e.a + q * 5.2, R0 = 200 + 90 * q, cx0 = sx(ST.x), cy0 = sy(ST.y) - 40;
       let prev = null; for (let j = 0; j <= 20; j++) { const an = head - j * 0.11, rr = R0 - j * 2.5, pt = [cx0 + Math.cos(an) * rr, cy0 + Math.sin(an) * rr * 0.62];
@@ -421,13 +451,18 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
         L.ring(ex, ey, 30 + 220 * q, 18 + 136 * q, [0.7, 0.95, 1], 1 - q, 0.05); }
       if (e.k === 'die' && e.type === 'brute' && a > 0.46 && a < 0.91) { const q = (a - 0.46) / 0.45; L.ring(ex, ey, 30 + 90 * q, 14 + 40 * q, [0.6, 0.65, 0.6], 0.8 * (1 - q), 0.1); }
       if (e.k === 'chest' && a < 1.2) { const q = a / 1.2; for (let j = 0; j < 14; j++) { const an = j * 0.449 + e.t, d = 40 + 200 * (1 - (1 - q) ** 2); L.star(ex + Math.cos(an) * d, ey - 40 + Math.sin(an) * d * 0.6, 20 * (1 - q), [1, 0.85, 0.35], 1 - q); } L.glow(ex, ey - 40, 220, [1, 0.8, 0.3], 0.6 * (1 - q), 2); }
+      if ((e.k === 'buy' || e.k === 'gift' || e.k === 'bossdown') && a < 0.8) { const q = a / 0.8, c = ICOL[e.id] || [1, 0.85, 0.35];
+        for (let j = 0; j < 10; j++) { const an = j * 0.628 + e.t, d = 30 + 150 * (1 - (1 - q) ** 2); L.star(ex + Math.cos(an) * d, ey - 50 + Math.sin(an) * d * 0.62, 16 * (1 - q), c, 1 - q); } }
+      if (e.k === 'vamp' && a < 0.4) { const q = a / 0.4; L.star(ex, ey - 70 - 30 * q, 14 * (1 - q), [1, 0.3, 0.35], 1 - q); }
       if (e.k === 'step' && a < 0.35) { const q = a / 0.35; L.puff(ex, ey - 2 - 6 * q, 6 + 7 * q, [0.35, 0.4, 0.36], 0.35 * (1 - q), e.t * 10); } }
     // damage numbers: one per enemy per 0.35 s (summed), black-hole ticks silent, at most the newest 24
     { const agg = new Map(); for (const e of ST.ev) { if (e.k !== 'dmg' || e.src === 'hole') continue; const a = GT - e.t; if (a < 0 || a > 1.1) continue;
-        const key = e.id + ':' + Math.floor(e.t / 0.35), g = agg.get(key); if (g) g.n += e.n; else agg.set(key, { n: e.n, t: e.t, x: e.x, y: e.y, id: e.id }); }
+        const key = e.id + ':' + Math.floor(e.t / 0.35), g = agg.get(key); if (g) { g.n += e.n; g.crit = g.crit || e.crit; } else agg.set(key, { n: e.n, t: e.t, x: e.x, y: e.y, id: e.id, crit: e.crit }); }
       const list = [...agg.values()].sort((p, q) => q.t - p.t).slice(0, 12), placed = [];
       for (const e of list) { let lift = 0; for (const q of placed) if (Math.abs(q[0] - e.x) < 46 && Math.abs(q[1] - lift - e.y) < 26) lift += 26; placed.push([e.x, e.y - lift]); e.y -= lift; const a = GT - e.t; if (a > 0.75) continue; const pop = a < 0.08 ? 0.6 + 5 * a : 1 - Math.max(0, a - 0.5) * 0.8, ox = (rnd(e.id, Math.floor(e.t / 0.35)) - 0.5) * 30;
-        dmgText(String(e.n), sx(e.x) + 34 * (rnd(e.id, 7) > 0.5 ? 1 : -1) + ox * 0.5, sy(e.y) + 10 - 26 * Math.min(1, a / 0.3), 30 * pop * (e.n >= 30 ? 1.12 : 1), 1 - L.SS(0.5, 0.75, a)); } }
+        const dxp = sx(e.x) + 34 * (rnd(e.id, 7) > 0.5 ? 1 : -1) + ox * 0.5, dyp = sy(e.y) + 10 - 26 * Math.min(1, a / 0.3);
+        if (e.crit) L.glow(dxp, dyp, 46, [1, 0.5, 0.1], 0.7 * (1 - L.SS(0.4, 0.75, a)), 2.5);   // a crit: bigger, on a hot glow
+        dmgText(String(e.n), dxp, dyp, 30 * pop * (e.crit ? 1.45 : e.n >= 30 ? 1.12 : 1), 1 - L.SS(0.5, 0.75, a)); } }
     // ambient: a few cold blue sparks drifting over the ruins (the reference's floating motes), world-anchored with parallax 1
     G.blend('add');
     for (let i = 0; i < 26; i++) { const per = 7 + 5 * rnd(i, 1), k0 = Math.floor((t + per * rnd(i, 2)) / per), u = ((t + per * rnd(i, 2)) / per) % 1;
@@ -467,9 +502,10 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
     { let lc = -9; for (const e of ST.ev) if (e.k === 'collect' && (e.g === 'xp' || e.g === 'xp5')) lc = Math.max(lc, e.t); const a = GT - lc;
       if (a >= 0 && a < 0.3) { L.rrect(172, 92, Math.max(0, 368 * xq), 30, 6, [0.8, 0.95, 1], [0.5, 0.75, 1], 0.5 * (1 - a / 0.3)); L.glow(172 + 368 * xq, 107, 40, [0.5, 0.8, 1], 0.6 * (1 - a / 0.3), 3); } }
     L.label('xp', 'XP  ' + ST.xp + '/' + SIM.need(ST.lv), 188, 107, { size: 25, col: '#eaf3ff', out: '#05101f', font: FONT });
-    // passive column (owned weapons as icons)
-    const own = SIM.WORDER.filter((k) => ST.wp[k] > 0);
-    own.slice(0, 4).forEach((k, i) => { const y = 222 + i * 76; L.uiBox('pas' + i, 24, y, 66, 66, 0); panel(24, y, 66, 66, 6, 0.9, [0.72, 0.72, 0.68]); icon(k, 28, y + 4, 58); });
+    // bought buffs: two columns of tiles, each with its rank in pips (like the weapon slots)
+    const own = SIM.BUFFS.filter((k) => SIM.rk(ST, k) > 0), tiles = [];
+    own.forEach((k, i) => { const x = 24 + (i % 2) * 76, y = 222 + Math.floor(i / 2) * 76, r = SIM.rk(ST, k), mx = SIM.STATS[k].max; tiles.push([k, x, y]);
+      L.uiBox('pas' + i, x, y, 66, 66, 0); panel(x, y, 66, 66, 6, 0.9, r >= mx ? [1, 0.8, 0.35] : [0.5, 0.56, 0.66]); icon(k, x + 11, y + 3, 44); pips(x + 6, y + 53, 54, 7, r, mx); });
     // timer
     const tw = L.labelW('timer', mmss(ST.clock), { size: 40, font: FONT });
     L.uiBox('timer', 1052 - tw / 2 - 26, 10, tw + 52, 62); L.rrect(1052 - tw / 2 - 26, 10, tw + 52, 62, 14, [0.02, 0.03, 0.05], [0.02, 0.03, 0.05], 0.55);
@@ -486,27 +522,97 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
     // weapon slots 1..5
     for (let i = 0; i < 5; i++) { const x = 22 + i * 108, y = 1032, k = SIM.WORDER[i], on = k && ST.wp[k] > 0;
       L.uiBox('slot' + i, x, y, 96, 96, 0); panel(x, y, 96, 96, 8, 0.92, on ? [0.42, 0.62, 0.9] : [0.25, 0.3, 0.38]);
-      if (on) { icon(k, x + 6, y + 6, 84); for (let d = 0; d < SIM.WP[k].max; d++) L.rrect(x + 14 + d * 15, y + 80, 10, 8, 3, d < ST.wp[k] ? [1, 0.85, 0.35] : [0.15, 0.18, 0.24], d < ST.wp[k] ? [0.9, 0.6, 0.15] : [0.08, 0.1, 0.14], 0.95); }
+      if (on) { icon(k, x + 6, y + 6, 84); pips(x + 14, y + 80, 70, 8, ST.wp[k], 10); }
       else if (k) icon(k, x + 6, y + 6, 84, 0.18); else L.rrect(x + 30, y + 26, 36, 44, 8, [0.18, 0.22, 0.3], [0.1, 0.13, 0.18], 0.6);
       L.uiBox('slotn' + i, x + 32, y + 98, 32, 34, 0); L.rrect(x + 32, y + 98, 32, 34, 6, [0.08, 0.1, 0.15], [0.04, 0.05, 0.08], 0.95);
       L.label('slotn' + i, String(i + 1), x + 48, y + 115, { size: 24, col: '#e6edf5', out: '#05080f', font: FONT, al: 0.5 }); }
     // minimap: enemies as red dots around the hero arrow
     const mx = 1786, my = 1030, mr = 128; G.draw(L.P.disc, { u_amt: 1 }, G.xf(mx - mr, my - mr, 2 * mr, 2 * mr));
-    for (const e of ST.en) { if (e.dieT >= 0 || (e.id % 5 && e.type !== 'brute') || Math.hypot(e.x - ST.x, e.y - ST.y) < 260) continue; const dx = (e.x - ST.x) / 9, dy = (e.y - ST.y) / 9; if (dx * dx + dy * dy > (mr - 12) ** 2) continue;
-      const r = e.type === 'brute' ? 5 : 3.5; L.rrect(mx + dx - r, my + dy - r, 2 * r, 2 * r, r, [1, 0.2, 0.22], [0.8, 0.08, 0.12], 0.95); }
+    for (const e of ST.en) { if (e.dieT >= 0 || (e.id % 5 && e.type !== 'brute' && !e.champ) || Math.hypot(e.x - ST.x, e.y - ST.y) < 260) continue; const dx = (e.x - ST.x) / 9, dy = (e.y - ST.y) / 9; if (dx * dx + dy * dy > (mr - 12) ** 2) continue;
+      const r = e.boss ? 8 : e.type === 'brute' ? 5 : 3.5; L.rrect(mx + dx - r, my + dy - r, 2 * r, 2 * r, r, [1, 0.2, 0.22], [0.8, 0.08, 0.12], 0.95); }
+    for (const [ax, ay] of SIM.ALTARS) { let dx = (ax - ST.x) / 9, dy = (ay - ST.y) / 9; const d = Math.hypot(dx, dy), lim = mr - 12; if (d > lim) { dx *= lim / d; dy *= lim / d; }
+      L.glow(mx + dx, my + dy, 16, [1, 0.75, 0.3], 0.5, 3); L.rrect(mx + dx - 6, my + dy - 6, 12, 12, 3, [1, 0.85, 0.4], [0.85, 0.55, 0.15], 0.95); }
     { const a = Math.atan2(ST.vy || -1, ST.vx || 0) + Math.PI / 2; L.glow(mx, my, 30, [1, 1, 1], 0.35, 3);
       for (let i = 0; i < 9; i++) { const v = -13 + i * 3, half = (v + 13) / 26 * 10;     // a filled arrowhead from scanlines
         L.solid(mx + Math.cos(a) * -half - Math.sin(a) * v, my + Math.sin(a) * -half + Math.cos(a) * v, 2 * half + 1, 3.4, [1, 1, 1], a, 0, 1.7); } }
-    if (S.auto && S.state) { const lw = L.labelW('auto', 'АВТОПИЛОТ · Q', { size: 24, font: FONT }); L.uiBox('auto', 1052 - lw / 2 - 16, 80, lw + 32, 38, 4);
-      L.rrect(1052 - lw / 2 - 16, 80, lw + 32, 38, 10, [0.05, 0.12, 0.2], [0.03, 0.07, 0.12], 0.8); L.label('auto', 'АВТОПИЛОТ · Q', 1052, 99, { size: 24, col: '#9fd4ff', out: '#05080f', font: FONT, al: 0.5, a: 0.7 + 0.3 * Math.sin(t * 4) }); }
+    if (S.auto && S.state) { const txt = S.auto === 2 ? 'АВТОХОД · ВЫБОР ВРУЧНУЮ · Q' : 'АВТОПИЛОТ · Q', lw = L.labelW('auto', txt, { size: 24, font: FONT }); L.uiBox('auto', 1052 - lw / 2 - 16, 80, lw + 32, 38, 4);
+      L.rrect(1052 - lw / 2 - 16, 80, lw + 32, 38, 10, [0.05, 0.12, 0.2], [0.03, 0.07, 0.12], 0.8); L.label('auto', txt, 1052, 99, { size: 24, col: '#9fd4ff', out: '#05080f', font: FONT, al: 0.5, a: 0.7 + 0.3 * Math.sin(t * 4) }); }
     { let wv = null; for (const e of ST.ev) if (e.k === 'wave' && (!wv || e.t > wv.t)) wv = e; const a = wv ? GT - wv.t : 9;
-      if (a >= 0 && a < 2.2) { const k = L.SS(0, 0.25, a) * (1 - L.SS(1.7, 2.2, a)), str = 'ВОЛНА ' + (wv.n + 1), lw = L.labelW('wave', str, { size: 64, font: FONT });
+      if (a >= 0 && a < 2.2) { const k = L.SS(0, 0.25, a) * (1 - L.SS(1.7, 2.2, a)), str = 'ВОЛНА ' + (wv.n + 1) + (wv.boss ? ' · ВОЖАК' : ''), lw = L.labelW('wave', str, { size: 64, font: FONT });
         L.uiBox('wave', W / 2 - lw / 2 - 40, 250, lw + 80, 90, 6); L.rrect(W / 2 - lw / 2 - 40, 250, lw + 80, 90, 16, [0.12, 0.02, 0.03], [0.06, 0.01, 0.02], 0.75 * k);
         L.label('wave', str, W / 2, 295, { size: 64, col: '#ff8a7a', out: '#1a0204', font: FONT, al: 0.5, a: k }); } }
     if (ST.pick) pickPanel(ST, GT, t);
     if (ST.dead >= 0 && GT - ST.dead > 0.6) overPanel(ST, GT);
     if (ST.won >= 0) winPanel(ST, GT);
+    if (S.state && S.speed > 1) { const s_ = '×' + S.speed, x0 = 1052 + tw / 2 + 40; L.uiBox('speed', x0, 18, 76, 46, 4); L.rrect(x0, 18, 76, 46, 10, [0.25, 0.12, 0.02], [0.15, 0.07, 0.01], 0.8);
+      L.label('speed', s_, x0 + 38, 41, { size: 30, col: '#ffcf7a', out: '#120800', font: FONT, al: 0.5 }); }
+    // toasts: the boss's reward, a gift from a level-up or a chest
+    { let ts = null; for (const e of ST.ev) if ((e.k === 'bossdown' || e.k === 'gift') && (!ts || e.t > ts.t)) ts = e; const a = ts ? GT - ts.t : 9, dur = ts && ts.k === 'bossdown' ? 3.2 : 2;
+      if (a >= 0 && a < dur) { const k = L.SS(0, 0.25, a) * (1 - L.SS(dur - 0.5, dur, a)), nm = ts.id ? SIM.STATS[ts.id].name : '', str = ts.k === 'bossdown' ? 'ВОЖАК ПОВЕРЖЕН!' + (nm ? '  +' + nm : '') : 'Дар: +' + nm;
+        const sz = ts.k === 'bossdown' ? 52 : 36, lw = L.labelW('toast', str, { size: sz, font: FONT }), y0 = ts.k === 'bossdown' ? 360 : 380;
+        L.uiBox('toast', W / 2 - lw / 2 - 36, y0, lw + 72, sz + 34, 6); L.rrect(W / 2 - lw / 2 - 36, y0, lw + 72, sz + 34, 14, [0.2, 0.14, 0.02], [0.1, 0.07, 0.01], 0.8 * k);
+        L.label('toast', str, W / 2, y0 + (sz + 34) / 2, { size: sz, col: '#ffd36a', out: '#1a1002', font: FONT, al: 0.5, a: k }); } }
+    if (ST.shop) shopPanel(ST, GT, t);
     if (S.paused && S.state) pausePanel();
+    tooltips(ST, tiles);
+  }
+  // rank pips: 5 at most; past 5 the ranks 6–10 turn them violet one by one (like the weapon levels)
+  function pips(x, y, w, h, r, mx) { const n = Math.min(5, mx), gap = 3, pw = (w - gap * (n - 1)) / n, aw = Math.max(0, r - 5);
+    for (let d = 0; d < n; d++) { const c = d < aw ? [[0.9, 0.6, 1], [0.6, 0.3, 0.95]] : d < r ? [[1, 0.85, 0.35], [0.9, 0.6, 0.15]] : [[0.15, 0.18, 0.24], [0.08, 0.1, 0.14]];
+      L.rrect(x + d * (pw + gap), y, pw, h, 3, c[0], c[1], 0.95); }
+    if (aw) L.glow(x + w / 2, y + h / 2, w * 0.45, [0.7, 0.4, 1], 0.12 + 0.04 * aw, 3); }
+  // a hover tooltip: a title, a subtitle and label → value rows, kept on screen
+  function tip(x, y, title, sub, rows, notes = []) {
+    const lw = (id, s, sz) => L.labelW(id, String(s), { size: sz, font: FONT });
+    let w = Math.max(lw('tt0', title, 28), lw('tt1', sub, 21)); rows.forEach(([a, b], i) => { w = Math.max(w, lw('ta' + i, a, 22) + lw('tb' + i, b, 22) + 40); });
+    notes.forEach((n, i) => { w = Math.max(w, lw('tn' + i, n, 20)); });
+    w += 40; const h = 84 + rows.length * 31 + notes.length * 26 + (notes.length ? 10 : 0);
+    if (y < 0) y = -y - h;                                                   // a negative y anchors the tooltip's bottom edge there
+    x = Math.max(10, Math.min(W - w - 10, x)); y = Math.max(10, Math.min(H - h - 10, y));
+    L.uiBox('tip', x, y, w, h, 8); panel(x, y, w, h, 10, 0.97, [0.55, 0.7, 0.95]);
+    L.label('tt0', title, x + 20, y + 26, { size: 28, col: '#f4f7fb', out: '#050a14', font: FONT });
+    L.label('tt1', sub, x + 20, y + 58, { size: 21, col: '#9fb3cf', out: '#050a14', font: FONT });
+    rows.forEach(([a, b], i) => { const ry = y + 92 + i * 31; L.label('ta' + i, a, x + 20, ry, { size: 22, col: '#c4d2e2', out: '#050a14', font: FONT });
+      L.label('tb' + i, String(b), x + w - 20, ry, { size: 22, col: '#51d2af', out: '#050a14', font: FONT, al: 1 }); });
+    notes.forEach((n, i) => L.label('tn' + i, n, x + 20, y + 92 + rows.length * 31 + 6 + i * 26, { size: 20, col: '#a9bdd6', out: '#050a14', font: FONT })); }
+  // what the pointer is over: a level-up card, a weapon slot or a buff tile
+  function tooltips(ST, tiles) {
+    const P = ST.qaPtr || (S.ptr && S.ptr.seen ? S.ptr : null); if (!P || !S.state && !ST.qaPtr || ST.shop || S.paused) return;
+    const inR = (x, y, w, h) => P.x >= x && P.x <= x + w && P.y >= y && P.y <= y + h;
+    if (ST.pick) { if (ST.pick.done >= 0) return; ST.pick.opts.forEach((id, i) => { const [x, y, w, h] = SIM.UI.card(ST.pick.kind, i); if (!inR(x, y, w, h) || !SIM.WP[id]) return;
+        const lv = ST.wp[id], nl = lv + 1, a = SIM.wInfo(ST, id, Math.max(1, lv)), b = SIM.wInfo(ST, id, nl);
+        tip(1440, 300, SIM.WP[id].name, lv ? `Уровень ${lv} → ${nl}` : 'Новое оружие', b.map(([n, v], j) => [n, lv && a[j] && String(a[j][1]) !== String(v) ? `${a[j][1]} → ${v}` : v])); }); return; }
+    for (let i = 0; i < 4; i++) { const k = SIM.WORDER[i], x = 22 + i * 108; if (!inR(x, 1032, 96, 96) || !ST.wp[k]) continue;
+      tip(Math.max(180, x), -(1032 - 12), SIM.WP[k].name, `Уровень ${ST.wp[k]} / ${SIM.WP[k].max}`, SIM.wInfo(ST, k, ST.wp[k]).concat(SIM.wDone(ST, k))); }
+    for (const [k, x, y] of tiles) { if (!inR(x, y, 66, 66)) continue; const B = SIM.STATS[k], r = SIM.rk(ST, k);
+      tip(x + 80, y, B.name, `Ранг ${r} / ${B.max}`, [['Сейчас', B.val(r)]].concat(r < B.max ? [['Следующий ранг', B.val(r + 1)]] : []), [B.desc]); }
+  }
+  // the altar's shop: 16 cards (rank pips, now / next, price), the selected card's description, the way out
+  function shopPanel(ST, GT, t) {
+    const sh = ST.shop, a = Math.min(1, (GT - sh.t0) / 0.25), U = SIM.UI, [px, py, pw, ph] = U.shop, dy = (1 - a) * 30;
+    L.rrect(0, 0, W, H, 0, [0, 0.01, 0.03], [0, 0.01, 0.03], 0.6 * a);
+    L.uiBox('shop', px, py + dy, pw, ph, 10); panel(px, py + dy, pw, ph, 14, 0.97 * a, [0.85, 0.65, 0.3]);
+    L.label('stitle', 'ЛАВКА АЛТАРЯ', W / 2, py + dy + 46, { size: 44, col: '#ffd98a', out: '#1a1002', font: FONT, al: 0.5, a });
+    L.label('ssub', 'Бафы за золото · стрелки и Enter или клик · Esc — уйти', W / 2, py + dy + 86, { size: 23, col: '#c9b48a', out: '#050a14', font: FONT, al: 0.5, a });
+    { const gs = String(ST.gold), gw = L.labelW('sgold', gs, { size: 34, font: FONT }); L.sprite('pick_coin', px + pw - 50 - gw - 46, py + dy + 26, { w: L.hsz('pick_coin', 40), h: 40 });
+      L.label('sgold', gs, px + pw - 40, py + dy + 46, { size: 34, col: '#ffe08a', out: '#1a1002', font: FONT, al: 1, a }); }
+    const flash = (k, id) => { let b = -9; for (const e of ST.ev) if (e.k === k && e.id === id) b = Math.max(b, e.t); return GT - b; };
+    SIM.SHOP.forEach((id, i) => { const [x, y0, w, h] = U.scard(i), y = y0 + dy, B = SIM.STATS[id], r = SIM.rk(ST, id), mx = SIM.maxed(ST, id), pr = SIM.price(ST, id), can = SIM.canBuy(ST, id), sel = i === sh.sel;
+      const fb = flash('buy', id), fn = flash('nobuy', id), shake = fn < 0.3 ? Math.sin(fn * 60) * 6 * (1 - fn / 0.3) : 0, X = x + shake;
+      L.uiBox('sc' + i, X, y, w, h, 6); panel(X, y, w, h, 10, 0.96 * a, mx ? [1, 0.8, 0.35] : sel ? [0.55, 0.78, 1] : can ? [0.4, 0.5, 0.62] : [0.25, 0.28, 0.34]);
+      if (sel) L.glow(X + w / 2, y + h / 2, w * 0.6, [0.5, 0.75, 1], 0.14 * a, 2); if (fb < 0.4) L.glow(X + w / 2, y + h / 2, w * 0.7, [1, 0.85, 0.4], 0.5 * (1 - fb / 0.4), 2);
+      icon(id, X + 12, y + 12, 64, (can || mx ? 1 : 0.55) * a);
+      L.label('sn' + i, B.name, X + 88, y + 30, { size: 24, col: '#f4f7fb', out: '#050a14', font: FONT, a });
+      if (id !== 'heal') pips(X + 88, y + 52, 120, 8, r, B.max); else L.label('sk' + i, ST.heals ? `Куплено: ${ST.heals}` : 'Разово', X + 88, y + 58, { size: 19, col: '#9fb3cf', out: '#050a14', font: FONT, a });
+      if (mx) L.label('sp' + i, 'МАКС', X + w - 14, y + 62, { size: 24, col: '#ffd36a', out: '#1a1002', font: FONT, al: 1, a });
+      else { const ps = String(pr), pwid = L.labelW('sp' + i, ps, { size: 24, font: FONT }); L.sprite('pick_coin', X + w - 14 - pwid - 30, y + 48, { w: L.hsz('pick_coin', 26), h: 26, u: { alpha: a } });
+        L.label('sp' + i, ps, X + w - 14, y + 62, { size: 24, col: ST.gold >= pr ? '#ffe08a' : '#c0504a', out: '#1a0a02', font: FONT, al: 1, a }); }
+      if (id === 'heal') L.label('sv' + i, B.val(0), X + 14, y + 112, { size: 21, col: '#7ef08f', out: '#050a14', font: FONT, a });
+      else { L.label('sv' + i, 'Сейчас: ' + (r ? B.val(r) : '—'), X + 14, y + 112, { size: 21, col: '#c4d2e2', out: '#050a14', font: FONT, a });
+        if (!mx) L.label('sx' + i, 'Далее: ' + B.val(r + 1), X + 14, y + 142, { size: 21, col: '#51d2af', out: '#050a14', font: FONT, a }); } });
+    const sd = SIM.STATS[SIM.SHOP[sh.sel]]; L.label('sdesc', sd.name + ': ' + sd.desc, px + 40, U.sclose[1] + dy + U.sclose[3] / 2, { size: 22, col: '#dfe8f3', out: '#050a14', font: FONT, a });
+    const [cx, cy, cw, ch] = U.sclose; L.uiBox('sclose', cx, cy + dy, cw, ch, 4); panel(cx, cy + dy, cw, ch, 10, 0.95 * a, [0.6, 0.5, 0.35]);
+    L.label('sclose', 'Уйти · Esc', cx + cw / 2, cy + dy + ch / 2, { size: 25, col: '#f1e3c4', out: '#050a14', font: FONT, al: 0.5, a });
   }
 
   // level-up: "Улучшение оружия" (weapon cards + reroll) or "Новый уровень!" (stat cards)
@@ -518,8 +624,8 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
     const weapon = p.kind === 'weapon';
     L.label('ptitle', weapon ? 'УЛУЧШЕНИЕ ОРУЖИЯ' : 'НОВЫЙ УРОВЕНЬ!', W / 2, py + dy + 48, { size: 44, col: '#dce8f8', out: '#050a14', font: FONT, al: 0.5, a: k });
     L.label('psub', weapon ? 'Выберите, как усилить ваше оружие' : 'Выберите один из вариантов', W / 2, py + dy + 92, { size: 27, col: '#a9bdd6', out: '#050a14', font: FONT, al: 0.5, a: k });
-    p.opts.forEach((id, i) => { const [x, y0, w, h] = SIM.UI.card(p.kind, i), y = y0 + dy, sel = i === p.sel, chosen = p.choice === i;
-      const border = weapon ? (sel ? [0.55, 0.78, 1] : [0.3, 0.42, 0.58]) : id === 'hp' ? [0.3, 0.8, 0.45] : id === 'spd' ? [0.35, 0.6, 0.95] : [0.95, 0.75, 0.3];
+    p.opts.forEach((id, i) => { const [x, y0, w, h] = SIM.UI.card(p.kind, i), y = y0 + dy, sel = i === p.sel, chosen = p.choice === i || p.choice === -2;
+      const border = weapon ? (sel ? [0.55, 0.78, 1] : [0.3, 0.42, 0.58]) : id === 'hp' ? [0.3, 0.8, 0.45] : id === 'spd' || id === 'haste' ? [0.35, 0.6, 0.95] : id === 'might' ? [0.95, 0.4, 0.25] : [0.95, 0.75, 0.3];
       const pulse = chosen ? 1 + 0.06 * Math.sin((GT - p.done) * 30) : sel ? 1.0 : 1;
       L.uiBox('card' + i, x, y, w, h, 8); panel(x, y, w, h, 10, 0.97 * k, border.map((v) => v * (sel ? 1.1 : 0.85) * pulse));
       if (sel) L.glow(x + w / 2, y + h / 2, w * 0.75, border, 0.18 * k, 2);
@@ -533,15 +639,17 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
           L.label('cv' + i + j, String(v), x + 20 + pw, y + 260 + j * 34, { size: 23, col: '#51d2af', out: '#050a14', font: FONT, a: k }); });
         L.solid(x + 18, y + 322, w - 36, 2, [0.25, 0.35, 0.5], 0, 0, 0, 0.8 * k);
         wrap(W_.desc, w - 40, 21).forEach((ln, j) => L.label('cd' + i + j, ln, x + 20, y + 345 + j * 25, { size: 21, col: '#c4d2e2', out: '#050a14', font: FONT, a: k })); }
-      else { const S_ = SIM.STATS[id]; icon(id, x + w / 2 - 50, y + 28, 100, k);
-        const col = id === 'hp' || id === 'heal' ? '#7ef08f' : id === 'spd' ? '#8fbaff' : id === 'magnet' ? '#c9a6ff' : '#ffd36a';
+      else { const S_ = SIM.EXTRA[id] || SIM.STATS[id], desc = typeof S_.desc === 'function' ? S_.desc(ST) : S_.desc; icon(id, x + w / 2 - 50, y + 28, 100, k);
+        const col = id === 'heal' ? '#7ef08f' : id === 'gift' ? '#ff9ad8' : '#ffd36a';
         L.label('cn' + i, S_.name, x + w / 2, y + 160, { size: 32, col, out: '#050a14', font: FONT, al: 0.5, a: k });
-        wrap(S_.desc, w - 40, 22).forEach((ln, j) => L.label('cd' + i + j, ln, x + w / 2, y + 200 + j * 27, { size: 22, col: '#c4d2e2', out: '#050a14', font: FONT, al: 0.5, a: k })); }
+        wrap(desc, w - 40, 22).forEach((ln, j) => L.label('cd' + i + j, ln, x + w / 2, y + 200 + j * 27, { size: 22, col: '#c4d2e2', out: '#050a14', font: FONT, al: 0.5, a: k })); }
       L.label('ck' + i, String(i + 1), x + w - 24, y + 22, { size: 20, col: '#6f86a6', out: '#050a14', font: FONT, al: 0.5, a: k * 0.9 }); });
     if (weapon) { const [rx, ry, rw, rh] = SIM.UI.reroll; L.uiBox('reroll', rx, ry + dy, rw, rh, 4); panel(rx, ry + dy, rw, rh, 10, 0.95 * k, [0.35, 0.55, 0.85]);
       const rr = ST.rerolls > 0 ? `Обновить (${ST.rerolls}) · 4` : `Обновить · ${SIM.REROLL} зол. · 4`, can = ST.rerolls > 0 || ST.gold >= SIM.REROLL;
       L.label('reroll', rr, rx + rw / 2 - 16, ry + dy + rh / 2, { size: 24, col: can ? '#dfeaff' : '#6b7a90', out: '#050a14', font: FONT, al: 0.5, a: k });
-      L.star(rx + rw - 40, ry + dy + rh / 2, 16, [0.4, 0.7, 1], k); }
+      L.star(rx + rw - 40, ry + dy + rh / 2, 16, [0.4, 0.7, 1], k);
+      const [ax, ay, aw, ah] = SIM.UI.all, ap = SIM.allPrice(ST), can2 = ST.gold >= ap; L.uiBox('takeall', ax, ay + dy, aw, ah, 4); panel(ax, ay + dy, aw, ah, 10, 0.95 * k, can2 ? [0.9, 0.7, 0.3] : [0.35, 0.38, 0.45]);
+      L.label('takeall', `Взять все · ${ap} зол. · 5`, ax + aw / 2, ay + dy + ah / 2, { size: 24, col: can2 ? '#ffe08a' : '#6b7a90', out: '#050a14', font: FONT, al: 0.5, a: k }); }
   }
   function winPanel(ST, GT) {
     const a = Math.min(1, (GT - ST.won) / 0.8); L.rrect(0, 0, W, H, 0, [0.02, 0.03, 0.01], [0.01, 0.02, 0.01], 0.5 * a);
@@ -571,15 +679,30 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
     { const vis = match.en.filter((e) => e.dieT < 0 && e.x > match.cam[0] + 80 && e.x < match.cam[0] + W - 80 && e.y > match.cam[1] + 150 && e.y < match.cam[1] + H - 150);   // the reference's density of feedback
       vis.slice(0, 16).forEach((e, i) => { e.hp = e.hpMax * (0.25 + 0.5 * L.rnd(i, 3)); });
       vis.slice(0, 19).forEach((e, i) => match.ev.push({ k: 'dmg', t: match.t - 0.05 - 0.4 * L.rnd(i, 5), x: e.x, y: e.y - 40, n: [22, 24, 32, 17, 28, 34, 23, 29][i % 8], id: e.id, src: 'ice' })); }
-    const pickW = adv(SIM.demoStart(0), 10); pickW.wp = { ice: 4, hole: 4, fire: 4, bolt: 4 }; pickW.lv = 99; SIM.offer(pickW); pickW.pick.kind = 'weapon'; pickW.pick.opts = ['ice', 'hole', 'fire']; adv(pickW, 60);
+    const pickW = adv(SIM.demoStart(0), 10); pickW.wp = { ice: 9, hole: 9, fire: 9, bolt: 9 }; pickW.lv = 99; SIM.offer(pickW); pickW.pick.kind = 'weapon'; pickW.pick.opts = ['ice', 'hole', 'fire']; adv(pickW, 60);
     pickW.rerolls = 9; pickW.kills = 99999; pickW.gold = 99999; pickW.clock = 5999; pickW.hp = 999; pickW.st.hp = 9;
     const pickN = adv(SIM.demoStart(0), 10); pickN.wp = { ice: 0, hole: 0, fire: 0, bolt: 0 }; pickN.lv = 2; SIM.offer(pickN); pickN.pick.kind = 'weapon'; pickN.pick.opts = ['bolt', 'hole', 'fire']; adv(pickN, 60);
-    const pickS = adv(SIM.demoStart(0), 10); pickS.lv = 3; SIM.offer(pickS); pickS.pick.kind = 'stat'; pickS.pick.opts = ['hp', 'spd', 'gold']; adv(pickS, 60);
-    const pickX = adv(SIM.demoStart(0), 10); pickX.wp = { ice: 5, hole: 5, fire: 5, bolt: 4 }; pickX.lv = 4; SIM.offer(pickX); pickX.pick.kind = 'weapon'; pickX.pick.opts = ['bolt', 'heal', 'magnet']; adv(pickX, 60);
-    const wave = adv(SIM.spawn(0), 10); wave.ev.push({ k: 'wave', t: wave.t - 0.6, x: wave.x, y: wave.y, n: 98 });
-    const winS = adv(SIM.demoStart(0), 10); winS.won = winS.t - 2; winS.kills = 99999; winS.clock = 600; winS.lv = 99;
+    const pickS = adv(SIM.demoStart(0), 10); pickS.lv = 3; SIM.offer(pickS); pickS.pick.kind = 'stat'; pickS.pick.opts = ['bag', 'gift', 'heal']; adv(pickS, 60);
+    const pickX = adv(SIM.demoStart(0), 10); pickX.wp = { ice: 10, hole: 10, fire: 10, bolt: 9 }; pickX.lv = 4; SIM.offer(pickX); pickX.pick.kind = 'weapon'; pickX.pick.opts = ['bolt', 'bag', 'gift']; adv(pickX, 60);
+    const wave = adv(SIM.spawn(0), 10); wave.ev.push({ k: 'wave', t: wave.t - 0.6, x: wave.x, y: wave.y, n: 98, boss: true });
+    const winS = adv(SIM.demoStart(0), 10); winS.won = winS.t - 2; winS.kills = 99999; winS.clock = SIM.WIN; winS.lv = 99;
     const over = adv(SIM.demoStart(0), 10); over.hp = 0; over.dead = over.t - 2; over.kills = 99999; over.gold = 99999; over.clock = 5999;
     const start = adv(SIM.spawn(0), 60);
+    // buffs, the shop and the tooltips (a pointer the scene reads from qaPtr)
+    const rich = (st) => { Object.assign(st.st, { might: 10, haste: 6, crit: 8, area: 3, hp: 7, armor: 2, regen: 8, spd: 1, knock: 4, vamp: 6, dur: 2, xp: 5, luck: 1, amount: 2, gold: 6 });
+      Object.assign(st, { gold: 99999, kills: 99999, clock: 1799, lv: 99, heals: 3, wp: { ice: 10, hole: 9, fire: 10, bolt: 10 }, dealt: { ice: 12345678, bolt: 987654, hole: 55555, fire: 4444444 }, kw: { ice: 54321, bolt: 9999, hole: 777, fire: 22222 } }); st.hp = SIM.maxHp(st); return st; };
+    const shopS = rich(adv(SIM.spawn(0), 30)); shopS.gold = 1234; shopS.st.might = 3; shopS.st.area = 7; shopS.st.amount = 0; shopS.shop = { i: 0, t0: shopS.t - 1, sel: 9 }; adv(shopS, 2); shopS.ev.push({ k: 'buy', t: shopS.t - 0.1, id: 'crit', x: shopS.x, y: shopS.y });
+    const tipW = rich(adv(SIM.spawn(0), 30)); tipW.qaPtr = { x: 60, y: 1070 };
+    const tipB = rich(adv(SIM.spawn(0), 30)); tipB.qaPtr = { x: 130, y: 330 };
+    const pickT = rich(adv(SIM.demoStart(0), 10)); pickT.wp = { ice: 9, hole: 9, fire: 9, bolt: 10 }; pickT.lv = 98; SIM.offer(pickT); pickT.pick.kind = 'weapon'; pickT.pick.opts = ['ice', 'hole', 'fire']; adv(pickT, 60); pickT.gold = 9999; pickT.qaPtr = { x: 670, y: 600 };
+    const bossDown = adv(SIM.spawn(0), 30); bossDown.ev.push({ k: 'bossdown', t: bossDown.t - 0.8, x: bossDown.x, y: bossDown.y, id: 'vamp' });
+    // late game: a boss, an elite and champions round the hero at 15:00, all weapons awakened
+    const boss = adv(SIM.spawn(0), 30); Object.assign(boss, { clock: 900, en: [], wp: { ice: 8, hole: 7, fire: 10, bolt: 6 } });
+    { const H = [boss.x, boss.y], add = (type, dx, dy, o) => Object.assign(SIM.addEnemy(boss, type, H[0] + dx, H[1] + dy, o.champ), o, { born: -9, hp: 1e6, hpMax: 2e6 });
+      add('brute', 380, -60, { elite: 1, boss: 1, sz: 1.6 }); add('brute', -420, 120, { elite: 1, sz: 1.3 });
+      add('skeleton', -200, -220, { champ: 1 }); add('ghoul', 250, 230, { champ: 1 }); add('brute', -150, 300, { champ: 1 }); add('bat', 120, -300, { champ: 1 });
+      for (let i = 0; i < 14; i++) add(['ghoul', 'skeleton', 'bat'][i % 3], Math.cos(i * 0.45) * (520 + i * 18), Math.sin(i * 0.45) * (330 + i * 9), {}); }
+    adv(boss, 20);
     // ---- rigs: walk cycles (really travelling, camera on the actor), rest poses, loops, transitions ----
     const solo = (o = {}) => Object.assign(SIM.create(), { en: [], gems: [], ev: [], pr: [], holes: [], wp: { ice: 0, hole: 0, fire: 0, bolt: 0 } }, o);
     const camOn = (st, x, y) => { st.cam = [x - W / 2, y - H / 2]; return st; };
@@ -616,7 +739,7 @@ void main(){ vec2 p = v_uv * 2.0 - 1.0; float r = length(p); float m = smoothste
     const anim = { torch: fx(torchSt, 'torch', [W / 2 - 60, H / 2 - 120, 120, 120]), hole: fx(holeSt, 'hole', [W / 2 - 160, H / 2 - 110, 320, 220]),
       rune: fx(runeSt, 'rune', [W / 2 - 110, H / 2 - 70, 220, 140]), fire: fx(fireSt, 'fire', [W / 2 - 200, H / 2 - 160, 400, 280]) };
     const box = (name) => { const n = name.split('_')[0], h = SZ(n) || 90; return [W / 2 - h * 0.9, H / 2 - h * 1.25, h * 1.8, h * 1.45]; };
-    return { states: [['match', match], ['start', start], ['pick_weapon', pickW], ['pick_new', pickN], ['pick_stat', pickS], ['pick_extra', pickX], ['wave', wave], ['game_over', over], ['win', winS]],
+    return { states: [['match', match], ['start', start], ['pick_weapon', pickW], ['pick_new', pickN], ['pick_stat', pickS], ['pick_extra', pickX], ['wave', wave], ['boss', boss], ['shop', shopS], ['tip_weapon', tipW], ['tip_buff', tipB], ['pick_tip', pickT], ['boss_down', bossDown], ['game_over', over], ['win', winS]],
       cycles, subject, cycleT, rest, sprites, loops, transitions, actors, box, anim };
   };
 })();
