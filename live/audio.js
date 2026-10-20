@@ -40,6 +40,11 @@
     wave: () => { tone('sawtooth', 110, 55, 0.6, 0.3); noise(200, 1, 0.6, 0.2); },
     chest: () => { const t0 = ac.currentTime; [659, 784, 988, 1319].forEach((f, i) => tone('square', f, f, 0.12, 0.12, t0 + i * 0.06)); },
     win: () => { const t0 = ac.currentTime; [523, 659, 784, 1047, 1319].forEach((f, i) => tone('triangle', f, f, 0.4, 0.18, t0 + i * 0.12)); },
+    shop: () => { const t0 = ac.currentTime; [523, 784, 1047].forEach((f, i) => tone('triangle', f, f * 1.01, 0.3, 0.14, t0 + i * 0.09)); noise(4000, 4, 0.4, 0.06, t0, 1.2); },
+    buy: () => { const t0 = ac.currentTime; tone('square', 1320, 1320, 0.06, 0.09, t0); tone('square', 1976, 1976, 0.12, 0.09, t0 + 0.06); tone('triangle', 988, 1976, 0.2, 0.1, t0 + 0.1); },
+    nobuy: () => tone('square', 160, 110, 0.18, 0.14),
+    gift: () => { const t0 = ac.currentTime; [784, 988, 1319].forEach((f, i) => tone('triangle', f, f, 0.2, 0.13, t0 + i * 0.06)); },
+    bossdown: () => { const t0 = ac.currentTime; tone('sine', 90, 40, 0.8, 0.4, t0); [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone('triangle', f, f, 0.35, 0.16, t0 + 0.2 + i * 0.09)); },
     death: () => { const t0 = ac.currentTime; [392, 330, 262, 196].forEach((f, i) => tone('triangle', f, f * 0.98, 0.35, 0.18, t0 + i * 0.16)); },
   };
   const loop = () => {
