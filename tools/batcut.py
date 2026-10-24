@@ -1,20 +1,108 @@
 #!/usr/bin/env python3
 """batcut.py — cut the approved bat (art/gen/bat.png, wings spread) into bat__body, bat__wingL, bat__wingR on one canvas
 (trimmed whole, scaled to 220 px high) + shoulder pivots and wing tips → live/rigs.js (RIGS.bat). Polygons in source px."""
-import json, re, os, numpy as np
-from PIL import Image, ImageDraw
-im = Image.open('art/gen/bat.png').convert('RGBA'); P = np.array(im); W0, H0 = im.size
-WL = [(0, 200), (548, 200), (548, 440), (598, 498), (628, 535), (630, 610), (626, 770), (0, 770)]
-WR = [(W0 - 1 - x, y) for x, y in WL]
-mask = lambda poly: np.array((lambda m: (ImageDraw.Draw(m).polygon(poly, fill=255), m)[1])(Image.new('L', im.size, 0))) > 0
-mL, mR = mask(WL) & (P[:, :, 3] > 0), mask(WR) & (P[:, :, 3] > 0); mB = (P[:, :, 3] > 0) & ~mL & ~mR
-ys, xs = np.where(P[:, :, 3] > 60); b = (xs.min() - 3, ys.min() - 3, xs.max() + 4, ys.max() + 4); s = 220 / (b[3] - b[1])
-cw, ch = round((b[2] - b[0]) * s), 220
-for nm, m in (('body', mB), ('wingL', mL), ('wingR', mR)):
-    q = P.copy(); q[~m] = 0; Image.fromarray(q).crop(b).resize((cw, ch), Image.LANCZOS).save(f'art/gen/bat__{nm}.png')
-R2 = lambda p: [(p[0] - b[0]) * s, (p[1] - b[1]) * s]
-meta = {'w': cw, 'h': ch, 'bh': ch, 'cx': R2((767, 560))[0], 'cy': R2((767, 560))[1], 'shL': R2((622, 560)), 'shR': R2((W0 - 1 - 622, 560)),
-        'tipL': R2((40, 420)), 'tipR': R2((W0 - 41, 420)), 'head': R2((767, 560)), 'parts': ['body', 'wingL', 'wingR']}
-rp = 'live/rigs.js'; R = json.loads(re.sub(r'^window\.RIGS = |;\s*$', '', open(rp).read().strip())); R['bat'] = meta
-open(rp, 'w').write('window.RIGS = ' + json.dumps(R) + ';\n'); print(meta)
-import subprocess; subprocess.run(['python3', 'tools/rigclean.py', 'bat'])
+import subprocess
+
+import numpy as np
+from PIL import Image
+
+from assetkit import ALPHA, PYTHON, RGBA, load_rigs, polygon_mask, save_rigs
+
+SOURCE = 'art/gen/bat.png'
+RIG_HEIGHT = 220
+ALPHA_SOLID = 60
+BOX_PAD_BEFORE = 3
+BOX_PAD_AFTER = 4
+# the left wing; the right one is its mirror
+WING_LEFT = (
+    (0, 200),
+    (548, 200),
+    (548, 440),
+    (598, 498),
+    (628, 535),
+    (630, 610),
+    (626, 770),
+    (0, 770),
+)
+BODY_CENTRE = (767, 560)
+SHOULDER_LEFT = (622, 560)
+TIP_LEFT = (40, 420)
+PARTS = ('body', 'wingL', 'wingR')
+
+
+def mirrored(point: tuple, width: int) -> tuple:
+    """The point reflected across the vertical centre line of the source."""
+    return (width - 1 - point[0], point[1])
+
+
+def part_masks(pixels: np.ndarray) -> dict:
+    """Each part's pixels: the wings by polygon, the body is the rest."""
+    opaque = pixels[..., ALPHA] > 0
+    canvas_size = (pixels.shape[1], pixels.shape[0])
+    right_polygon = [mirrored(point, pixels.shape[1]) for point in WING_LEFT]
+    wing_left = polygon_mask(canvas_size, [WING_LEFT]) & opaque
+    wing_right = polygon_mask(canvas_size, [right_polygon]) & opaque
+    return dict(zip(PARTS, (opaque & ~wing_left & ~wing_right, wing_left, wing_right)))
+
+
+def crop_box(alpha: np.ndarray) -> tuple:
+    """The solid pixels' bounding box, padded."""
+    rows, cols = np.where(alpha > ALPHA_SOLID)
+    return (
+        cols.min() - BOX_PAD_BEFORE,
+        rows.min() - BOX_PAD_BEFORE,
+        cols.max() + BOX_PAD_AFTER,
+        rows.max() + BOX_PAD_AFTER,
+    )
+
+
+def to_rig(point: tuple, box: tuple, scale: float) -> list:
+    """A source-px point in rig px (the trimmed, scaled canvas)."""
+    shift_x = point[0] - box[0]
+    shift_y = point[1] - box[1]
+    return [shift_x * scale, shift_y * scale]
+
+
+def save_parts(pixels: np.ndarray, box: tuple, canvas: tuple) -> None:
+    """Write each part, trimmed and scaled to the rig canvas, to art/gen."""
+    for part, mask in part_masks(pixels).items():
+        part_pixels = pixels.copy()
+        part_pixels[~mask] = 0
+        part_image = Image.fromarray(part_pixels).crop(box)
+        part_image.resize(canvas, Image.LANCZOS).save(f'art/gen/bat__{part}.png')
+
+
+def rig_meta(box: tuple, scale: float, width: int, canvas: tuple) -> dict:
+    """RIGS.bat: canvas size, centre, shoulder pivots and wing tips in rig px."""
+    centre = to_rig(BODY_CENTRE, box, scale)
+    return {
+        'w': canvas[0],
+        'h': canvas[1],
+        'bh': canvas[1],
+        'cx': centre[0],
+        'cy': centre[1],
+        'shL': to_rig(SHOULDER_LEFT, box, scale),
+        'shR': to_rig(mirrored(SHOULDER_LEFT, width), box, scale),
+        'tipL': to_rig(TIP_LEFT, box, scale),
+        'tipR': to_rig(mirrored(TIP_LEFT, width), box, scale),
+        'head': to_rig(BODY_CENTRE, box, scale),
+        'parts': list(PARTS),
+    }
+
+
+def main() -> None:
+    """Cut the bat, record its rig, clean the parts."""
+    pixels = np.array(Image.open(SOURCE).convert(RGBA))
+    box = crop_box(pixels[..., ALPHA])
+    scale = RIG_HEIGHT / (box[3] - box[1])
+    canvas = (round((box[2] - box[0]) * scale), RIG_HEIGHT)
+    save_parts(pixels, box, canvas)
+    rigs = load_rigs()
+    rigs['bat'] = rig_meta(box, scale, pixels.shape[1], canvas)
+    save_rigs(rigs)
+    print(rigs['bat'])
+    subprocess.run([PYTHON, 'tools/rigclean.py', 'bat'])
+
+
+if __name__ == '__main__':
+    main()

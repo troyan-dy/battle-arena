@@ -1,0 +1,5 @@
+# пайплайн ассетов (tools/) и его линтер; игре в live/ зависимости не нужны
+numpy>=2.5
+pillow>=12.3
+scipy>=1.18
+wemake-python-styleguide>=1.8.1
