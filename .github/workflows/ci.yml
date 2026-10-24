@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v7
+        with:
+          python-version: 3.x
+      - name: Синтаксис JS
+        run: for f in live/*.js live/*.cjs; do node --check "$f"; done
+      - name: Компиляция tools/
+        run: python -m compileall -q tools
+      - name: Демо доходит до своих моментов
+        run: node live/tune.cjs > /dev/null
