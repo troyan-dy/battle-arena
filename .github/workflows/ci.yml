@@ -21,7 +21,11 @@ jobs:
           python-version: 3.x
       - name: Синтаксис JS
         run: for f in live/*.js live/*.cjs; do node --check "$f"; done
+      - name: Зависимости tools/
+        run: pip install -r requirements-dev.txt
       - name: Компиляция tools/
         run: python -m compileall -q tools
+      - name: WPS (flake8, конфиг в setup.cfg)
+        run: flake8 .
       - name: Демо доходит до своих моментов
         run: node live/tune.cjs > /dev/null

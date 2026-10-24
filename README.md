@@ -66,7 +66,7 @@ WebGL нельзя открыть с `file://`, нужен любой стати
 
 ## Пересборка ассетов
 
-Нужен установленный скилл ref2game (`~/.claude/skills/ref2game`).
+Нужен установленный скилл ref2game (`~/.claude/skills/ref2game`) и Python-зависимости: `pip install -r requirements-dev.txt`.
 
 ```bash
 python3 tools/finish.py            # все ассеты из art/raw → art/gen → live/assets
@@ -79,6 +79,7 @@ python3 tools/finish.py skeleton   # один ассет (ключ, грейд, 
 S=~/.claude/skills/ref2game/scripts
 node $S/qa.mjs                     # HUD в худших случаях, точка вылета снарядов, походка ригов, эффекты
 node live/tune.cjs                 # демо доходит до своих моментов
+flake8 .                           # wemake-python-styleguide для tools/ (конфиг в setup.cfg)
 node $S/livecheck.mjs --shots 2    # ошибки страницы и fps
 python3 $S/pack.py --name pixel-arena --zip   # статическая сборка в dist/
 ```
